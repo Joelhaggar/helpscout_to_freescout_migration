@@ -1,0 +1,22 @@
+{
+  "_comment": "Maps Help Scout mailbox IDs to FreeScout mailbox IDs",
+  "_instructions": [
+    "1. Copy this file to mailbox_mapping.json",
+    "2. Get Help Scout mailbox IDs from: https://secure.helpscout.net/settings/mailboxes/",
+    "3. Get FreeScout mailbox IDs from: http://your-freescout-url/mailboxes or via API",
+    "4. Update the mappings below with your actual IDs",
+    "5. The _helpscout_mailboxes and _freescout_mailboxes sections are for documentation only"
+  ],
+  "_helpscout_mailboxes": {
+    "111111": "Support Mailbox",
+    "222222": "Sales Mailbox"
+  },
+  "_freescout_mailboxes": {
+    "1": "Support",
+    "2": "Sales"
+  },
+  "mapping": {
+    "111111": 1,
+    "222222": 2
+  }
+}

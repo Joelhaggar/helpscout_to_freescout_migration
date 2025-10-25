@@ -1,0 +1,53 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+
+# Configuration files (contain instance-specific mappings)
+config/user_mapping.json
+config/mailbox_mapping.json
+
+# Help Scout cache (contains API responses)
+helpscout_cache/
+
+# Migration state files (contain API mappings and progress)
+migration_progress.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+logs/*.log
+*.log
+
+# Output files
+output/*.json
+output/*.csv
+*.csv
+*.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Development tools
+.bmad-core/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

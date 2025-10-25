@@ -1,0 +1,22 @@
+{
+  "_comment": "Maps Help Scout user IDs to FreeScout user IDs",
+  "_instructions": [
+    "1. Copy this file to user_mapping.json",
+    "2. Get Help Scout user IDs from: https://secure.helpscout.net/settings/users/",
+    "3. Get FreeScout user IDs from: http://your-freescout-url/users or via API",
+    "4. Update the mappings below with your actual IDs",
+    "5. The _helpscout_users and _freescout_users sections are for documentation only"
+  ],
+  "_helpscout_users": {
+    "123456": "John Doe (john@example.com)",
+    "789012": "Jane Smith (jane@example.com)"
+  },
+  "_freescout_users": {
+    "1": "John Doe (john@example.com)",
+    "2": "Jane Smith (jane@example.com)"
+  },
+  "mapping": {
+    "123456": 1,
+    "789012": 2
+  }
+}
