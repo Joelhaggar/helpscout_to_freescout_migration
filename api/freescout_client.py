@@ -170,6 +170,15 @@ class FreeScoutClient:
         """
         return self._make_request('PUT', f'/customers/{customer_id}', data=customer_data)
 
+    def delete_customer(self, customer_id: int) -> None:
+        """
+        Delete a customer.
+
+        Args:
+            customer_id: FreeScout customer ID
+        """
+        self._make_request('DELETE', f'/customers/{customer_id}')
+
     def search_customer_by_email(self, email: str) -> Optional[Dict]:
         """
         Search for a customer by email address.
@@ -309,22 +318,71 @@ class FreeScoutClient:
 
     # ===== Custom Fields Methods =====
 
-    def update_conversation_custom_fields(self, conversation_id: int, custom_fields: Dict) -> Dict:
+    def update_custom_fields(self, conversation_id: int, custom_fields: List[Dict]) -> Dict:
         """
         Update custom fields for a conversation.
 
+        Requires Custom Fields module to be installed.
+
         Args:
             conversation_id: FreeScout conversation ID
-            custom_fields: Dictionary of custom field values
+            custom_fields: List of custom field objects with 'id' and 'value'
+                          Example: [{'id': 1, 'value': '3119294864'}]
 
         Returns:
-            Response data
+            Response data (204 No Content on success)
+
+        Example:
+            fs_client.update_custom_fields(162, [{'id': 1, 'value': '3119294864'}])
         """
         return self._make_request(
             'PUT',
             f'/conversations/{conversation_id}/custom_fields',
-            data=custom_fields
+            data={'customFields': custom_fields}
         )
+
+    def find_conversation_by_helpscout_id(self, helpscout_id: str) -> Optional[Dict]:
+        """
+        Find a conversation by Help Scout ID using custom field search.
+
+        Requires Custom Fields module to be installed.
+
+        Args:
+            helpscout_id: Help Scout conversation ID to search for
+
+        Returns:
+            Conversation dict if found, None otherwise
+        """
+        try:
+            # Search conversations - we'll need to fetch and check custom fields
+            # FreeScout API doesn't support searching by custom field directly,
+            # so we need to check each conversation's custom fields
+            page = 1
+            while True:
+                response = self.get_conversations(page=page, page_size=50, status='all')
+                conversations = response.get('_embedded', {}).get('conversations', [])
+
+                if not conversations:
+                    break
+
+                for conv in conversations:
+                    custom_fields = conv.get('customFields', [])
+                    for field in custom_fields:
+                        if field.get('name') == 'Helpscout' and field.get('value') == str(helpscout_id):
+                            return conv
+
+                # Check if there are more pages
+                page_info = response.get('page', {})
+                if page >= page_info.get('totalPages', 1):
+                    break
+
+                page += 1
+
+            return None
+
+        except Exception as e:
+            # If search fails, return None (conversation not found)
+            return None
 
     # ===== Users Methods =====
 

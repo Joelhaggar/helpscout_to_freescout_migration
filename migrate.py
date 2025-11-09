@@ -90,6 +90,9 @@ class MigrationOrchestrator:
         # Track processed conversations to avoid duplicates
         self.processed_hs_conversation_ids = set()
 
+        # Cache of existing Help Scout IDs in FreeScout (from custom fields)
+        self.existing_helpscout_ids_in_freescout = set()
+
         # Progress file
         self.progress_file = project_root / 'migration_progress.json'
 
@@ -127,6 +130,54 @@ class MigrationOrchestrator:
         }
         with open(self.progress_file, 'w') as f:
             json.dump(data, f, indent=2)
+
+    def _build_existing_helpscout_ids_cache(self):
+        """
+        Build a cache of Help Scout IDs that already exist in FreeScout.
+        Checks the Helpscout custom field on all existing conversations.
+        """
+        print("\n🔍 Checking for existing migrated conversations in FreeScout...")
+        print("   (This prevents duplicates even if migration_progress.json is cleared)")
+
+        page = 1
+        total_found = 0
+
+        try:
+            while True:
+                response = self.fs_client.get_conversations(page=page, page_size=50, status='all')
+                conversations = response.get('_embedded', {}).get('conversations', [])
+
+                if not conversations:
+                    break
+
+                for conv in conversations:
+                    custom_fields = conv.get('customFields', [])
+                    for field in custom_fields:
+                        if field.get('name') == 'Helpscout' and field.get('value'):
+                            try:
+                                hs_id = int(field.get('value'))
+                                self.existing_helpscout_ids_in_freescout.add(hs_id)
+                                total_found += 1
+                            except (ValueError, TypeError):
+                                pass  # Invalid Help Scout ID, skip
+
+                # Check if there are more pages
+                page_info = response.get('page', {})
+                if page >= page_info.get('totalPages', 1):
+                    break
+
+                page += 1
+
+        except Exception as e:
+            print(f"   ⚠ Warning: Could not check existing conversations: {e}")
+            print(f"   Will rely on migration_progress.json only")
+            return
+
+        if total_found > 0:
+            print(f"   ✓ Found {total_found} already-migrated conversations in FreeScout")
+        else:
+            print(f"   ✓ No existing migrated conversations found (clean start)")
+        print()
 
     def _get_or_create_customer(self, hs_customer: Dict, customer_email: str) -> Optional[int]:
         """
@@ -191,8 +242,8 @@ class MigrationOrchestrator:
         print(f"\n  Conversation: {conv_subject} (ID: {conv_id})")
 
         try:
-            # Check if already processed
-            if conv_id in self.processed_hs_conversation_ids:
+            # Check if already processed (both from progress file and FreeScout custom fields)
+            if conv_id in self.processed_hs_conversation_ids or conv_id in self.existing_helpscout_ids_in_freescout:
                 print(f"    ⊘ Skipping - already migrated")
                 self.stats['conversations_skipped'] += 1
                 return False
@@ -326,18 +377,29 @@ class MigrationOrchestrator:
 
             # Update status and assignee after adding all threads
             # FreeScout auto-changes status based on last thread, so we need to fix it
+            # Always update since we don't fetch the current status after adding threads
             final_updates = {}
             expected_status = map_status(hs_conv.get('status'))
-            if fs_conversation.get('status') != expected_status:
-                final_updates['status'] = expected_status
+            final_updates['status'] = expected_status
 
             # Re-apply assignee if it was set (might have been cleared)
             if fs_conversation_data.get('assignTo'):
                 final_updates['assignTo'] = fs_conversation_data['assignTo']
 
-            if final_updates:
-                final_updates['byUser'] = 8  # FreeScout requires byUser for updates
-                self.fs_client.update_conversation(fs_conv_id, final_updates)
+            # Always update to ensure correct status
+            final_updates['byUser'] = 8  # FreeScout requires byUser for updates
+            self.fs_client.update_conversation(fs_conv_id, final_updates)
+
+            # Set Help Scout ID and Number custom fields (requires Custom Fields module)
+            try:
+                hs_number = hs_conv.get('number')
+                self.fs_client.update_custom_fields(fs_conv_id, [
+                    {'id': 1, 'value': str(conv_id)},  # Helpscout_ID (conversation ID)
+                    {'id': 2, 'value': str(hs_number) if hs_number else ''}  # Helpscout_No (ticket number)
+                ])
+            except Exception as e:
+                # Don't fail migration if custom field update fails
+                print(f"    ⚠ Could not set custom fields: {e}")
 
             print(f"    ✓ Migrated {len(hs_threads)} threads")
             self.stats['conversations_migrated'] += 1
@@ -391,6 +453,9 @@ class MigrationOrchestrator:
         print("=" * 70)
 
         try:
+            # Build cache of existing migrated conversations in FreeScout
+            self._build_existing_helpscout_ids_cache()
+
             # Set migration start time
             if not self.stats.get('migration_start_time'):
                 self.stats['migration_start_time'] = datetime.now().isoformat()
