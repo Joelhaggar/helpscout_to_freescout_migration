@@ -220,17 +220,19 @@ class FreeScoutClient:
             conversation_data['imported'] = True
         return self._make_request('POST', '/conversations', data=conversation_data)
 
-    def get_conversation(self, conversation_id: int) -> Dict:
+    def get_conversation(self, conversation_id: int, embed: str = None) -> Dict:
         """
         Get a conversation by ID.
 
         Args:
             conversation_id: FreeScout conversation ID
+            embed: Optional embedded data (e.g., 'threads' to include threads)
 
         Returns:
             Conversation data dictionary
         """
-        return self._make_request('GET', f'/conversations/{conversation_id}')
+        params = {'embed': embed} if embed else {}
+        return self._make_request('GET', f'/conversations/{conversation_id}', params=params)
 
     def get_conversations(self, page: int = 1, page_size: int = 50, **filters) -> Dict:
         """
@@ -270,6 +272,19 @@ class FreeScoutClient:
         self._make_request('DELETE', f'/conversations/{conversation_id}')
 
     # ===== Thread Methods =====
+
+    def get_conversation_threads(self, conversation_id: int) -> List[Dict]:
+        """
+        Get all threads for a conversation.
+
+        Args:
+            conversation_id: FreeScout conversation ID
+
+        Returns:
+            List of thread dictionaries
+        """
+        conversation = self.get_conversation(conversation_id, embed='threads')
+        return conversation.get('_embedded', {}).get('threads', [])
 
     def add_thread(self, conversation_id: int, thread_data: Dict, imported: bool = False) -> Dict:
         """

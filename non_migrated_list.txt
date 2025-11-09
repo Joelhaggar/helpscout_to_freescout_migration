@@ -1,0 +1,169 @@
+Fetching all conversations not from Help Scout migration...
+  Processed 50 pages...
+  Processed 100 pages...
+  Processed 150 pages...
+Found 147 total conversations not from Help Scout
+
+Full list saved to non_migrated_conversations.json
+
+SUMMARY BY STATUS AND ASSIGNEE
+======================================================================
+active - Anica: 5
+active - Joel: 75
+active - Unassigned: 44
+closed - Anica: 1
+closed - Unassigned: 2
+pending - Anica: 2
+pending - Joel: 11
+pending - Unassigned: 7
+
+
+ALL NON-MIGRATED CONVERSATIONS
+======================================================================
+#  66 | FS:   66 | active   | Anica      | Re: New customer message on October 20, 2025 at 7:10 am
+#  69 | FS:   69 | active   | Anica      | Re: New customer message on October 16, 2025 at 12:19 pm
+#  86 | FS:   86 | active   | Anica      | Re: New customer message on October 20, 2025 at 7:10 am
+#  89 | FS:   89 | active   | Anica      | Re: New customer message on October 16, 2025 at 12:19 pm
+# 103 | FS:  103 | active   | Anica      | Host Application from bransonbuilders.one@gmail.com
+#  22 | FS:   22 | active   | Joel       | FreeScout Test Email
+#  64 | FS:   64 | active   | Joel       | Domegaia LLC IN7149
+#  65 | FS:   65 | active   | Joel       | Domegaia LLC IN7148
+#  68 | FS:   68 | active   | Joel       | Re: Eden Studio follow up
+#  71 | FS:   71 | active   | Joel       | Invoice 32846
+#  72 | FS:   72 | active   | Joel       | INVOICE 32806
+#  73 | FS:   73 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  74 | FS:   74 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  75 | FS:   75 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  76 | FS:   76 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  77 | FS:   77 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  78 | FS:   78 | active   | Joel       | New customer message on October 10, 2025 at 11:50 am
+#  79 | FS:   79 | active   | Joel       | Domegaia IN7136
+#  84 | FS:   84 | active   | Joel       | Domegaia LLC IN7149
+#  85 | FS:   85 | active   | Joel       | Domegaia LLC IN7148
+#  88 | FS:   88 | active   | Joel       | Re: Eden Studio follow up
+#  91 | FS:   91 | active   | Joel       | Invoice 32846
+#  92 | FS:   92 | active   | Joel       | INVOICE 32806
+#  93 | FS:   93 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  94 | FS:   94 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  95 | FS:   95 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  96 | FS:   96 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  97 | FS:   97 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+#  98 | FS:   98 | active   | Joel       | New customer message on October 10, 2025 at 11:50 am
+#  99 | FS:   99 | active   | Joel       | Domegaia IN7136
+# 100 | FS:  100 | active   | Joel       | From Sandhill Plastics Inc.
+# 101 | FS:  101 | active   | Joel       | Domegaia LLC IN7135
+# 102 | FS:  102 | active   | Joel       | October 2025 Statement
+# 104 | FS:  104 | active   | Joel       | Re: September Invoice and Receipt
+# 105 | FS:  105 | active   | Joel       | Payment Receipt from GLOBMARBLE INC
+# 106 | FS:  106 | active   | Joel       | Re: New customer message on September 16, 2025 at 8:34 am
+# 109 | FS:  109 | active   | Joel       | Invoice 355843 from Precision Installation Products, Inc.
+# 111 | FS:  111 | active   | Joel       | Re: I want to make 8' high 2' wide at the base and tapers to
+# 113 | FS:  113 | active   | Joel       | Re: New customer message on August 27, 2025 at 12:26 pm
+# 114 | FS:  114 | active   | Joel       | Re: Testing Methods / Foaming agents
+# 115 | FS:  115 | active   | Joel       | Re: Mixer Electrocuted Me - Requesting Replacement
+# 116 | FS:  116 | active   | Joel       | Re: New customer message on August 20, 2025 at 9:52 am
+# 117 | FS:  117 | active   | Joel       | New message from Chelsea Southard on Instagram
+# 119 | FS:  119 | active   | Joel       | Re: Georgia Dome project
+# 120 | FS:  120 | active   | Joel       | New customer message on 23 July 2025 at 2:32 pm
+# 121 | FS:  121 | active   | Joel       | Re: New customer message on July 19, 2025 at 9:16 am
+# 122 | FS:  122 | active   | Joel       | FW: Voicemail from ALTOR SOLUTIONS at (774) 813-8758 on Jul 
+# 123 | FS:  123 | active   | Joel       | Re: engineering approval
+# 124 | FS:  124 | active   | Joel       | Re: Compressor strength
+# 125 | FS:  125 | active   | Joel       | New customer message on July 13, 2025 at 7:10 pm
+# 126 | FS:  126 | active   | Joel       | Lorenzo-New Agora
+# 128 | FS:  128 | active   | Joel       | how to download the free ebook? I don't see a lonk.
+# 129 | FS:  129 | active   | Joel       | New customer message on June 19, 2025 at 8:26 am
+# 130 | FS:  130 | active   | Joel       | info request
+# 132 | FS:  132 | active   | Joel       | New message from Paul Damon on Messenger
+# 133 | FS:  133 | active   | Joel       | Re: Invoice #D928
+# 135 | FS:  135 | active   | Joel       | Re: Chat
+# 136 | FS:  136 | active   | Joel       | Re: New customer message on June 5, 2025 at 4:10 am
+# 137 | FS:  137 | active   | Joel       | Re: Astral projection meditation project
+# 138 | FS:  138 | active   | Joel       | Re: New customer message on May 28, 2025 at 8:26 am
+# 139 | FS:  139 | active   | Joel       | Fwd: Lightweight concrete information from Vermillion Cellul
+# 140 | FS:  140 | active   | Joel       | New customer message on May 12, 2025 at 10:37 am
+# 141 | FS:  141 | active   | Joel       | Re: Fun little song
+# 143 | FS:  143 | active   | Joel       | Re: Checking in
+# 144 | FS:  144 | active   | Joel       | Re: Checkin in
+# 145 | FS:  145 | active   | Joel       | New message from Susan Coutant on Messenger
+# 146 | FS:  146 | active   | Joel       | Re: What's Your Dream Dome Home Floor Plan?
+# 147 | FS:  147 | active   | Joel       | Re: Google Earth Pic/city contact
+# 148 | FS:  148 | active   | Joel       | Re: What's Your Dream Dome Home Floor Plan?
+# 149 | FS:  149 | active   | Joel       | Download
+# 150 | FS:  150 | active   | Joel       | Re: Jamul Workshop Question
+# 151 | FS:  151 | active   | Joel       | Re: From Sandhill Plastics Inc.
+# 152 | FS:  152 | active   | Joel       | Aircrete Area & Volume Calculator
+# 153 | FS:  153 | active   | Joel       | New customer message on March 12, 2025 at 1:06 pm
+# 154 | FS:  154 | active   | Joel       | Re: New customer message on March 8, 2025 at 4:25 pm
+# 155 | FS:  155 | active   | Joel       | Re: The Big Book
+# 157 | FS:  157 | active   | Joel       | Your On Sale Offer
+# 158 | FS:  158 | active   | Joel       | New customer message on March 2, 2025 at 9:50 pm
+# 159 | FS:  159 | active   | Joel       | Ebook
+# 160 | FS:  160 | active   | Joel       | Re: suggestion
+#  23 | FS:   23 | active   | Unassigned | test
+#  24 | FS:   24 | active   | Unassigned | Having trouble with mixer
+#  25 | FS:   25 | active   | Unassigned | I have another problem
+#  26 | FS:   26 | active   | Unassigned | test 33
+#  27 | FS:   27 | active   | Unassigned | test 99 about the new email system
+#  29 | FS:   29 | active   | Unassigned | test
+#  30 | FS:   30 | active   | Unassigned | test
+#  31 | FS:   31 | active   | Unassigned | Test Migration Conversation 1761340243
+#  32 | FS:   32 | active   | Unassigned | Test Migration Conversation 1761340564
+#  34 | FS:   34 | active   | Unassigned | 🗳️Voting Open for BroadwayWorld Next on Stage Season 6 + Mee
+#  35 | FS:   35 | active   | Unassigned | 🗳️Voting Open for BroadwayWorld Next on Stage Season 6 + Mee
+#  36 | FS:   36 | active   | Unassigned | You went viral on TikTok—now turn views into sales with Shop
+#  37 | FS:   37 | active   | Unassigned | Re: 7 Spots. 5 Days. 1 Life-Changing Build.
+#  39 | FS:   39 | active   | Unassigned | Re: Georgia Dome project
+#  40 | FS:   40 | active   | Unassigned | Re: INVOICE 32844
+#  41 | FS:   41 | active   | Unassigned | Attachment Format Test
+#  42 | FS:   42 | active   | Unassigned | Test: Add Thread Attachment
+#  47 | FS:   47 | active   | Unassigned | INVOICE 33162
+#  48 | FS:   48 | active   | Unassigned | New customer message on October 22, 2025 at 11:51 am
+#  49 | FS:   49 | active   | Unassigned | Host Application from jr@stonehouse.io
+#  50 | FS:   50 | active   | Unassigned | Host Application from sacredacresjamaica@gmail.com
+#  51 | FS:   51 | active   | Unassigned | Domegaia LLC IN7149
+#  52 | FS:   52 | active   | Unassigned | Domegaia LLC IN7148
+#  53 | FS:   53 | active   | Unassigned | Re: New customer message on October 20, 2025 at 7:10 am
+#  54 | FS:   54 | active   | Unassigned | Host Application from taryncarey@mail.coml
+#  55 | FS:   55 | active   | Unassigned | Re: Eden Studio follow up
+#  56 | FS:   56 | active   | Unassigned | Re: New customer message on October 16, 2025 at 12:19 pm
+#  58 | FS:   58 | active   | Unassigned | Invoice 32846
+#  59 | FS:   59 | active   | Unassigned | INVOICE 32806
+#  60 | FS:   60 | active   | Unassigned | INVOICE 33162
+#  61 | FS:   61 | active   | Unassigned | New customer message on October 22, 2025 at 11:51 am
+#  62 | FS:   62 | active   | Unassigned | Host Application from jr@stonehouse.io
+#  63 | FS:   63 | active   | Unassigned | Host Application from sacredacresjamaica@gmail.com
+#  67 | FS:   67 | active   | Unassigned | Host Application from taryncarey@mail.coml
+#  80 | FS:   80 | active   | Unassigned | INVOICE 33162
+#  81 | FS:   81 | active   | Unassigned | New customer message on October 22, 2025 at 11:51 am
+#  82 | FS:   82 | active   | Unassigned | Host Application from jr@stonehouse.io
+#  83 | FS:   83 | active   | Unassigned | Host Application from sacredacresjamaica@gmail.com
+#  87 | FS:   87 | active   | Unassigned | Host Application from taryncarey@mail.coml
+#5030 | FS: 5030 | active   | Unassigned | Re: What will you build?
+#5031 | FS: 5031 | active   | Unassigned | New customer message on October 22, 2024 at 10:24 am
+#5032 | FS: 5032 | active   | Unassigned | Shipping Confirmation #7807
+#5034 | FS: 5034 | active   | Unassigned | New customer message on October 22, 2024 at 8:44 am
+#5035 | FS: 5035 | active   | Unassigned | Re: Welcome to Domegaia!
+#5033 | FS: 5033 | closed   | Anica      | Sales and Support: New voicemail from +1 970-355-7779
+#  28 | FS:   28 | closed   | Unassigned | Welcome to Mail Basic
+#5036 | FS: 5036 | closed   | Unassigned | TEST - Status Closed
+#  70 | FS:   70 | pending  | Anica      | Domegaia Workshop Info - Ajo, Arizona
+#  90 | FS:   90 | pending  | Anica      | Domegaia Workshop Info - Ajo, Arizona
+# 107 | FS:  107 | pending  | Joel       | Re: INVOICE 32844
+# 108 | FS:  108 | pending  | Joel       | 14 x 24ft Eden Efficiency Design
+# 110 | FS:  110 | pending  | Joel       | Re: Sept 2025 Payment
+# 112 | FS:  112 | pending  | Joel       | Re: Large Dome Video Review
+# 118 | FS:  118 | pending  | Joel       | Re: August 2025 Paymnet
+# 127 | FS:  127 | pending  | Joel       | Burt out Pump
+# 131 | FS:  131 | pending  | Joel       | Re: Type of Pallet used
+# 134 | FS:  134 | pending  | Joel       | Building Model - The LoZo
+# 142 | FS:  142 | pending  | Joel       | Re: May 2025 Payment
+# 156 | FS:  156 | pending  | Joel       | March 2025 Payment
+# 161 | FS:  161 | pending  | Joel       | Hawaii Host Deposit Refund
+#  33 | FS:   33 | pending  | Unassigned | Test: Historical Conversation from Jan 2023
+#  43 | FS:   43 | pending  | Unassigned | Re: INVOICE 32844
+#  44 | FS:   44 | pending  | Unassigned | Re: INVOICE 32844
+#  45 | FS:   45 | pending  | Unassigned | Re: INVOICE 32844
+#  46 | FS:   46 | pending  | Unassigned | Re: INVOICE 32844
+#  57 | FS:   57 | pending  | Unassigned | Domegaia Workshop Info - Ajo, Arizona
+#5037 | FS: 5037 | pending  | Unassigned | TEST - Status Pending

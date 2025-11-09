@@ -74,8 +74,10 @@ class MigrationOrchestrator:
             'customers_migrated': 0,
             'customers_skipped': 0,
             'conversations_migrated': 0,
+            'conversations_updated': 0,  # NEW: track updates to existing conversations
             'conversations_skipped': 0,
             'threads_migrated': 0,
+            'threads_added_to_existing': 0,  # NEW: track threads added to existing conversations
             'attachments_migrated': 0,
             'errors': [],
             'last_sync_time': None,
@@ -91,7 +93,8 @@ class MigrationOrchestrator:
         self.processed_hs_conversation_ids = set()
 
         # Cache of existing Help Scout IDs in FreeScout (from custom fields)
-        self.existing_helpscout_ids_in_freescout = set()
+        # Changed from set to dict: HS ID -> FS Conversation object
+        self.existing_helpscout_ids_in_freescout = {}
 
         # Progress file
         self.progress_file = project_root / 'migration_progress.json'
@@ -105,7 +108,14 @@ class MigrationOrchestrator:
         print(f"\nLoading progress from: {progress_file}")
         with open(progress_file, 'r') as f:
             data = json.load(f)
-            self.stats = data.get('stats', self.stats)
+            loaded_stats = data.get('stats', {})
+            # Merge loaded stats with defaults, ensuring new fields exist
+            self.stats.update(loaded_stats)
+            # Ensure all stat fields exist (for backward compatibility)
+            for key in ['conversations_updated', 'threads_added_to_existing']:
+                if key not in self.stats:
+                    self.stats[key] = 0
+
             self.customer_mapping = {int(k): int(v) for k, v in data.get('customer_mapping', {}).items()}
             self.conversation_mapping = {int(k): int(v) for k, v in data.get('conversation_mapping', {}).items()}
 
@@ -135,6 +145,7 @@ class MigrationOrchestrator:
         """
         Build a cache of Help Scout IDs that already exist in FreeScout.
         Checks the Helpscout custom field on all existing conversations.
+        Stores full conversation objects for use in incremental updates.
         """
         print("\n🔍 Checking for existing migrated conversations in FreeScout...")
         print("   (This prevents duplicates even if migration_progress.json is cleared)")
@@ -156,7 +167,8 @@ class MigrationOrchestrator:
                         if field.get('name') == 'Helpscout' and field.get('value'):
                             try:
                                 hs_id = int(field.get('value'))
-                                self.existing_helpscout_ids_in_freescout.add(hs_id)
+                                # Store full conversation object, not just ID
+                                self.existing_helpscout_ids_in_freescout[hs_id] = conv
                                 total_found += 1
                             except (ValueError, TypeError):
                                 pass  # Invalid Help Scout ID, skip
@@ -178,6 +190,228 @@ class MigrationOrchestrator:
         else:
             print(f"   ✓ No existing migrated conversations found (clean start)")
         print()
+
+    def _create_thread_signature(self, thread: Dict) -> str:
+        """
+        Create a unique signature for a thread to detect duplicates.
+        Uses timestamp + thread type + body to create unique identifier.
+
+        Args:
+            thread: Thread dictionary (Help Scout or FreeScout format)
+
+        Returns:
+            Unique signature string
+        """
+        created_at = thread.get('createdAt', '')
+        thread_type = thread.get('type', '')
+        # Handle both Help Scout (body) and FreeScout (text) formats
+        body = thread.get('body', thread.get('text', ''))
+        # Handle None body values safely
+        if body is None:
+            body = ''
+        # Use first 200 chars of body + timestamp + type for signature
+        return f"{created_at}:{thread_type}:{body[:200]}"
+
+    def _get_new_threads(
+        self,
+        hs_threads: List[Dict],
+        fs_threads: List[Dict]
+    ) -> List[Dict]:
+        """
+        Identify Help Scout threads that don't exist in FreeScout.
+
+        Args:
+            hs_threads: List of Help Scout thread dicts
+            fs_threads: List of FreeScout thread dicts
+
+        Returns:
+            List of NEW Help Scout threads to migrate
+        """
+        # Build set of existing thread signatures from FreeScout
+        existing_signatures = {
+            self._create_thread_signature(t) for t in fs_threads
+        }
+
+        # Find threads not in FreeScout
+        new_threads = []
+        for hs_thread in hs_threads:
+            sig = self._create_thread_signature(hs_thread)
+            if sig not in existing_signatures:
+                new_threads.append(hs_thread)
+
+        return new_threads
+
+    def _update_existing_conversation(
+        self,
+        hs_conv: Dict,
+        fs_conv: Dict
+    ) -> bool:
+        """
+        Update an existing FreeScout conversation with new threads from Help Scout.
+
+        Args:
+            hs_conv: Help Scout conversation dict
+            fs_conv: FreeScout conversation dict (from cache)
+
+        Returns:
+            True if update succeeded, False otherwise
+        """
+        conv_id = hs_conv.get('id')
+        fs_conv_id = fs_conv.get('id')
+        conv_subject = hs_conv.get('subject', '(No Subject)')
+
+        print(f"\n  Updating existing conversation: {conv_subject} (HS ID: {conv_id}, FS ID: {fs_conv_id})")
+
+        try:
+            # 1. Get Help Scout threads (fetch early for email fallback and customer extraction)
+            hs_threads = self.hs_client.get_conversation_threads(conv_id)
+            if not hs_threads:
+                print(f"    ⊘ No threads in Help Scout")
+                return False
+
+            # 2. Get customer info for thread creation
+            customer_ref = hs_conv.get('primaryCustomer', hs_conv.get('customer'))
+            if not customer_ref:
+                # Try to extract customer email from threads if customer object is missing
+                customer_email_from_threads = None
+                for thread in hs_threads:
+                    if thread.get('type') == 'customer':
+                        created_by = thread.get('createdBy', {})
+                        if created_by.get('email'):
+                            customer_email_from_threads = created_by.get('email')
+                            break
+
+                if not customer_email_from_threads:
+                    print(f"    ✗ No customer found and no email in threads")
+                    return False
+
+                # Create minimal customer object from thread data
+                hs_customer = {
+                    'id': None,
+                    'emails': [customer_email_from_threads],
+                    'firstName': None,
+                    'lastName': None
+                }
+                customer_email = customer_email_from_threads
+                customer_id = None
+            else:
+                # Handle both dict and non-dict customer references
+                if isinstance(customer_ref, dict):
+                    customer_id = customer_ref.get('id')
+                else:
+                    # If customer_ref is just an ID
+                    customer_id = customer_ref
+
+                if not customer_id:
+                    print(f"    ✗ No customer ID found")
+                    return False
+
+                hs_customer = self.hs_client.get_customer(customer_id)
+                if not hs_customer:
+                    print(f"    ✗ Could not fetch customer data")
+                    return False
+
+                # Extract customer email (with thread fallback)
+                customer_email = None
+                emails = hs_customer.get('emails', [])
+                if emails:
+                    customer_email = emails[0] if isinstance(emails[0], str) else emails[0].get('value')
+                else:
+                    # Try to find email in threads (customer threads first, then any thread with email)
+                    # First check customer-type threads
+                    for thread in hs_threads:
+                        if thread.get('type') == 'customer':
+                            created_by = thread.get('createdBy', {})
+                            if created_by.get('email'):
+                                customer_email = created_by['email']
+                                break
+
+                    # If customer thread has no email, check all other threads
+                    if not customer_email:
+                        for thread in hs_threads:
+                            created_by = thread.get('createdBy', {})
+                            if created_by.get('email') and 'nowhere' not in created_by.get('email', '').lower():
+                                customer_email = created_by['email']
+                                break
+
+                if not customer_email:
+                    customer_email = f"helpscout.customer.{customer_id}@migration.local"
+
+            # 3. Get FreeScout threads
+            fs_threads = self.fs_client.get_conversation_threads(fs_conv_id)
+
+            # 4. Identify new threads
+            new_threads = self._get_new_threads(hs_threads, fs_threads)
+
+            if not new_threads:
+                print(f"    ⊘ No new threads to migrate (already up to date)")
+                self.stats['conversations_skipped'] += 1
+                return False
+
+            print(f"    → Found {len(new_threads)} new threads to migrate")
+
+            # 5. Add new threads (WITHOUT attachments - FreeScout API limitation)
+            threads_added = 0
+            for hs_thread in new_threads:
+                # Skip attachment handling for add_thread (API limitation)
+                fs_thread = map_thread_to_freescout(
+                    hs_thread,
+                    customer_email=customer_email,
+                    attachments_data=None  # Attachments don't work in add_thread
+                )
+
+                self.fs_client.add_thread(fs_conv_id, fs_thread, imported=True)
+                threads_added += 1
+                self.stats['threads_migrated'] += 1
+                self.stats['threads_added_to_existing'] += 1
+
+            # 6. Update conversation status if it changed
+            hs_status = map_status(hs_conv.get('status'))
+            fs_status = fs_conv.get('status')
+
+            if hs_status != fs_status:
+                print(f"    → Updating status: {fs_status} → {hs_status}")
+                update_data = {
+                    'status': hs_status,
+                    'byUser': 8  # Required by FreeScout API
+                }
+
+                # Re-apply assignee if it changed
+                hs_assignee = hs_conv.get('assignee')
+                if hs_assignee and hs_assignee.get('id'):
+                    # Try to map the user ID (basic implementation)
+                    fs_user_id = hs_assignee.get('id')  # In real scenario, map HS user to FS user
+                    if fs_user_id:
+                        update_data['assignTo'] = fs_user_id
+
+                self.fs_client.update_conversation(fs_conv_id, update_data)
+
+            print(f"    ✓ Updated conversation with {threads_added} new threads")
+            self.stats['conversations_updated'] += 1
+
+            return True
+
+        except (HelpScoutAPIError, FreeScoutAPIError) as e:
+            print(f"    ✗ API Error: {e}")
+            self.stats['errors'].append({
+                'type': 'conversation_update',
+                'conversation_id': conv_id,
+                'freescout_id': fs_conv_id,
+                'error': str(e)
+            })
+            return False
+
+        except Exception as e:
+            import traceback
+            print(f"    ✗ Unexpected Error: {e}")
+            print(f"    Debug: {traceback.format_exc()}")
+            self.stats['errors'].append({
+                'type': 'conversation_update',
+                'conversation_id': conv_id,
+                'freescout_id': fs_conv_id,
+                'error': str(e)
+            })
+            return False
 
     def _get_or_create_customer(self, hs_customer: Dict, customer_email: str) -> Optional[int]:
         """
@@ -242,11 +476,20 @@ class MigrationOrchestrator:
         print(f"\n  Conversation: {conv_subject} (ID: {conv_id})")
 
         try:
-            # Check if already processed (both from progress file and FreeScout custom fields)
-            if conv_id in self.processed_hs_conversation_ids or conv_id in self.existing_helpscout_ids_in_freescout:
-                print(f"    ⊘ Skipping - already migrated")
+            # Check if already processed in this run
+            if conv_id in self.processed_hs_conversation_ids:
+                print(f"    ⊘ Skipping - already processed in this run")
                 self.stats['conversations_skipped'] += 1
                 return False
+
+            # Check if conversation exists in FreeScout - UPDATE it instead of skipping
+            if conv_id in self.existing_helpscout_ids_in_freescout:
+                # Conversation already exists - update it with new threads
+                fs_conv = self.existing_helpscout_ids_in_freescout[conv_id]
+                result = self._update_existing_conversation(hs_conv, fs_conv)
+                if result:
+                    self.processed_hs_conversation_ids.add(conv_id)
+                return result
 
             # Check for spam
             if self.skip_spam and is_spam_conversation(hs_conv):
@@ -254,22 +497,40 @@ class MigrationOrchestrator:
                 self.stats['conversations_skipped'] += 1
                 return False
 
-            # Get customer
-            customer_ref = hs_conv.get('primaryCustomer', hs_conv.get('customer'))
-            if not customer_ref:
-                print(f"    ✗ No customer found")
-                self.stats['conversations_skipped'] += 1
-                return False
-
-            customer_id = customer_ref.get('id')
-            hs_customer = self.hs_client.get_customer(customer_id)
-
-            # Get threads to extract customer email if needed
+            # Get threads first (may contain customer email if customer object missing)
             hs_threads = self.hs_client.get_conversation_threads(conv_id)
             if not hs_threads:
                 print(f"    ⊘ Skipping - no threads")
                 self.stats['conversations_skipped'] += 1
                 return False
+
+            # Get customer (or create placeholder if missing)
+            customer_ref = hs_conv.get('primaryCustomer', hs_conv.get('customer'))
+            if not customer_ref:
+                # Try to extract customer email from threads to use as customer identifier
+                customer_email_from_threads = None
+                for thread in hs_threads:
+                    if thread.get('type') == 'customer':
+                        created_by = thread.get('createdBy', {})
+                        if created_by.get('email'):
+                            customer_email_from_threads = created_by.get('email')
+                            break
+
+                if not customer_email_from_threads:
+                    print(f"    ✗ No customer found and no email in threads")
+                    self.stats['conversations_skipped'] += 1
+                    return False
+
+                # Create minimal customer object from thread data
+                hs_customer = {
+                    'id': None,
+                    'emails': [customer_email_from_threads],
+                    'firstName': None,
+                    'lastName': None
+                }
+            else:
+                customer_id = customer_ref.get('id')
+                hs_customer = self.hs_client.get_customer(customer_id)
 
             # Handle attachments - reorder threads if needed
             attachment_count = count_threads_with_attachments(hs_threads)
@@ -287,11 +548,20 @@ class MigrationOrchestrator:
             if emails:
                 customer_email = emails[0] if isinstance(emails[0], str) else emails[0].get('value')
             else:
-                # Try to find email in threads
+                # Try to find email in threads (customer threads first, then any thread with email)
+                # First check customer-type threads
                 for thread in hs_threads:
                     if thread.get('type') == 'customer':
                         created_by = thread.get('createdBy', {})
                         if created_by.get('email'):
+                            customer_email = created_by['email']
+                            break
+
+                # If customer thread has no email, check all other threads
+                if not customer_email:
+                    for thread in hs_threads:
+                        created_by = thread.get('createdBy', {})
+                        if created_by.get('email') and 'nowhere' not in created_by.get('email', '').lower():
                             customer_email = created_by['email']
                             break
 
@@ -319,13 +589,35 @@ class MigrationOrchestrator:
 
             if first_thread_attachments:
                 attachments_data = []
+                total_size = 0
+
                 for att in first_thread_attachments:
                     att_id = att.get('id')
                     filename = att.get('filename')
                     mime_type = att.get('mimeType')
+                    att_size = att.get('size', 0)  # Size in bytes
+
+                    # Check individual attachment size limit (40MB per attachment)
+                    if att_size > 40 * 1024 * 1024:
+                        print(f"      ⚠ Attachment {filename} too large ({att_size / 1024 / 1024:.1f}MB), skipping")
+                        self.stats['errors'].append({
+                            'type': 'attachment_too_large',
+                            'conversation_id': conv_id,
+                            'filename': filename,
+                            'size_mb': att_size / 1024 / 1024
+                        })
+                        continue
 
                     try:
                         att_bytes = self.hs_client.download_attachment(conv_id, att_id)
+                        att_bytes_size = len(att_bytes)
+                        total_size += att_bytes_size
+
+                        # Check total request size (45MB limit)
+                        if total_size > 45 * 1024 * 1024:
+                            print(f"      ⚠ Total attachment size exceeds limit, stopping at {total_size / 1024 / 1024:.1f}MB")
+                            break
+
                         attachments_data.append({
                             'filename': filename,
                             'mimeType': mime_type,
@@ -334,6 +626,12 @@ class MigrationOrchestrator:
                         self.stats['attachments_migrated'] += 1
                     except Exception as e:
                         print(f"      ⚠ Failed to download attachment {filename}: {e}")
+                        self.stats['errors'].append({
+                            'type': 'attachment_download_failed',
+                            'conversation_id': conv_id,
+                            'filename': filename,
+                            'error': str(e)
+                        })
 
             fs_first_thread = map_thread_to_freescout(
                 hs_threads[0],
@@ -616,8 +914,10 @@ class MigrationOrchestrator:
             print(f"\nSummary:")
             print(f"  Customers migrated: {self.stats['customers_migrated']}")
             print(f"  Conversations migrated: {self.stats['conversations_migrated']}")
+            print(f"  Conversations updated: {self.stats['conversations_updated']}")
             print(f"  Conversations skipped: {self.stats['conversations_skipped']}")
             print(f"  Threads migrated: {self.stats['threads_migrated']}")
+            print(f"  Threads added to existing: {self.stats['threads_added_to_existing']}")
             print(f"  Attachments migrated: {self.stats['attachments_migrated']}")
             print(f"  Errors: {len(self.stats['errors'])}")
             print(f"\nCache Performance:")
@@ -637,7 +937,12 @@ class MigrationOrchestrator:
                         print(f"  Conversation ID: {error['conversation_id']}")
                     if 'customer_id' in error:
                         print(f"  Customer ID: {error['customer_id']}")
-                    print(f"  Error: {error['error']}")
+                    if 'filename' in error:
+                        print(f"  Filename: {error['filename']}")
+                    if 'size_mb' in error:
+                        print(f"  Size: {error['size_mb']:.1f}MB")
+                    if 'error' in error:
+                        print(f"  Error: {error['error']}")
 
                 if len(self.stats['errors']) > 10:
                     print(f"\n  ... and {len(self.stats['errors']) - 10} more errors")

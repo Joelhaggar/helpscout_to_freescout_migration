@@ -1,0 +1,28 @@
+Loading Help Scout cache...
+Loaded 9760 conversations from cache
+Loaded 9658 conversation mappings
+
+Fetching ALL active conversations from FreeScout...
+Found 207 active conversations in FreeScout
+
+======================================================================
+RESULTS
+======================================================================
+Total active in FreeScout: 207
+Not in mapping: 124
+Not in cache: 0
+STATUS MISMATCHES: 0
+
+✓ No mismatches found!
+
+Conversations in FreeScout but not in mapping (first 10):
+  1. FS:42 - Test: Add Thread Attachment
+  2. FS:41 - Attachment Format Test
+  3. FS:32 - Test Migration Conversation 1761340564
+  4. FS:31 - Test Migration Conversation 1761340243
+  5. FS:34 - 🗳️Voting Open for BroadwayWorld Next on Stage Seas
+  6. FS:35 - 🗳️Voting Open for BroadwayWorld Next on Stage Seas
+  7. FS:36 - You went viral on TikTok—now turn views into sales
+  8. FS:30 - test
+  9. FS:37 - Re: 7 Spots. 5 Days. 1 Life-Changing Build.
+  10. FS:29 - test
