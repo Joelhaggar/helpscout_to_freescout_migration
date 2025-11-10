@@ -787,7 +787,9 @@ class MigrationOrchestrator:
                 print(f"     Performing full sync instead")
 
             # Build status filter
-            api_status = 'active' if self.skip_spam else self.status_filter
+            # Use the configured status_filter (which defaults to 'all')
+            # skip_spam only affects tag-based filtering, not status filtering
+            api_status = self.status_filter
 
             print(f"\nFetching and migrating conversations (streaming mode)...")
             print(f"  API-level filters: status={api_status}, exclude_tags={self.exclude_tags or 'none'}")
@@ -1030,8 +1032,10 @@ def main():
     args = parser.parse_args()
 
     # Parse exclude_tags
-    exclude_tags_list = None
+    # Default: exclude spam, low-priority, and ignore tagged conversations
+    exclude_tags_list = ['spam', 'low-priority', 'ignore']
     if args.exclude_tags:
+        # If user provides tags, use those instead of defaults
         exclude_tags_list = [tag.strip() for tag in args.exclude_tags.split(',')]
 
     # Parse exclude_status
