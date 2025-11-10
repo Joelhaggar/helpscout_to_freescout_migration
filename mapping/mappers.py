@@ -2,7 +2,6 @@
 Data mapping functions to transform Help Scout data to FreeScout format.
 """
 import json
-import base64
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -257,12 +256,12 @@ def map_thread_to_freescout(
     if attachments_data:
         fs_attachments = []
         for att_data in attachments_data:
-            # Base64 encode the attachment data
-            encoded_data = base64.b64encode(att_data['data_bytes']).decode('utf-8')
+            # FreeScout API accepts 'content' with raw binary data (matching import_from_export_with_attachments.py pattern)
+            # Do NOT base64 encode - FreeScout expects raw binary content
             fs_attachments.append({
                 "fileName": att_data['filename'],
                 "mimeType": att_data['mimeType'],
-                "data": encoded_data
+                "content": att_data['data_bytes']  # Raw binary data, not base64
             })
         fs_thread['attachments'] = fs_attachments
 

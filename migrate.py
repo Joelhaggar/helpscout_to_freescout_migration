@@ -313,9 +313,17 @@ class MigrationOrchestrator:
 
                 # Extract customer email (with thread fallback)
                 customer_email = None
+
+                # Try to get email from customer object (check both top-level and _embedded)
                 emails = hs_customer.get('emails', [])
+                if not emails:
+                    # Help Scout API stores emails in _embedded.emails, not top-level
+                    emails = hs_customer.get('_embedded', {}).get('emails', [])
+
                 if emails:
-                    customer_email = emails[0] if isinstance(emails[0], str) else emails[0].get('value')
+                    # emails is an array of either strings or objects with 'value' key
+                    first_email = emails[0]
+                    customer_email = first_email if isinstance(first_email, str) else first_email.get('value')
                 else:
                     # Try to find email in threads (customer threads first, then any thread with email)
                     # First check customer-type threads
@@ -544,9 +552,17 @@ class MigrationOrchestrator:
 
             # Extract customer email
             customer_email = None
+
+            # Try to get email from customer object (check both top-level and _embedded)
             emails = hs_customer.get('emails', [])
+            if not emails:
+                # Help Scout API stores emails in _embedded.emails, not top-level
+                emails = hs_customer.get('_embedded', {}).get('emails', [])
+
             if emails:
-                customer_email = emails[0] if isinstance(emails[0], str) else emails[0].get('value')
+                # emails is an array of either strings or objects with 'value' key
+                first_email = emails[0]
+                customer_email = first_email if isinstance(first_email, str) else first_email.get('value')
             else:
                 # Try to find email in threads (customer threads first, then any thread with email)
                 # First check customer-type threads
