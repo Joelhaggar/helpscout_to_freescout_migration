@@ -12,9 +12,36 @@ config/mailbox_mapping.json
 
 # Help Scout cache (contains API responses)
 helpscout_cache/
+helpscout_attachments/
+
+# Debug and test scripts in root directory (use production_scripts_v2/ instead)
+/debug_*.py
+/test_*.py
+/build_customer_mapping.py
+/extract_customer_mapping.py
+/import_from_*.py
+/incremental_sync.py
+/merge_cache_to_export.py
+/update_*.py
+/verify_*.py
+/check_*.py
+/delta_sync_*.py
+/download_*.py
+
+# Old production scripts (replaced by production_scripts_v2/)
+production_scripts/
+
+# Planning and documentation (already implemented)
+*GUIDE.md
+*STRATEGY.md
+*PLAN.md
+*WORKFLOW.md
+CLEANUP_PLAN.md
 
 # Migration state files (contain API mappings and progress)
 migration_progress.json
+bulk_import_state.json
+customer_mapping.json
 
 # Python
 __pycache__/

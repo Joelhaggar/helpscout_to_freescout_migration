@@ -93,8 +93,15 @@ class FreeScoutClient:
 
             # Handle errors
             error_msg = f"{method} {endpoint} failed with status {response.status_code}"
+            # Log detailed error response
+            try:
+                error_detail = response.json() if response.content else response.text
+            except:
+                error_detail = response.text
+
+            error_msg_detailed = f"{error_msg}: {error_detail}"
             raise FreeScoutAPIError(
-                error_msg,
+                error_msg_detailed,
                 status_code=response.status_code,
                 response=response.text
             )

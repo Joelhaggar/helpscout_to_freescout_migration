@@ -34,21 +34,39 @@ def map_customer_to_freescout(hs_customer: Dict) -> Dict:
         FreeScout customer data dictionary
     """
     # Extract primary email
-    emails = hs_customer.get('emails', [])
+    # Email data can be:
+    # 1. Top level as string: email
+    # 2. In _embedded.emails array with 'value' field
+    # 3. Top level as emails array
     primary_email = None
-    if emails:
-        primary_email = emails[0] if isinstance(emails[0], str) else emails[0].get('value')
+    emails = []
+
+    # Try direct email field first
+    if hs_customer.get('email'):
+        primary_email = hs_customer.get('email')
+    else:
+        # Try emails array
+        emails = hs_customer.get('emails', []) or hs_customer.get('_embedded', {}).get('emails', [])
+        if emails:
+            primary_email = emails[0] if isinstance(emails[0], str) else emails[0].get('value')
 
     # Extract primary phone
-    phones = hs_customer.get('phones', [])
+    # Phone data can be at top level or in _embedded.phones
+    phones = hs_customer.get('phones', []) or hs_customer.get('_embedded', {}).get('phones', [])
     primary_phone = None
     if phones:
         primary_phone = phones[0] if isinstance(phones[0], str) else phones[0].get('value')
 
+    # Extract name - handle both API formats
+    # Format 1: firstName/lastName (full API response)
+    # Format 2: first/last (simplified API response or exported format)
+    first_name = hs_customer.get('firstName', '') or hs_customer.get('first', '')
+    last_name = hs_customer.get('lastName', '') or hs_customer.get('last', '')
+
     # Build FreeScout customer data
     fs_customer = {
-        "firstName": hs_customer.get('firstName', ''),
-        "lastName": hs_customer.get('lastName', ''),
+        "firstName": first_name,
+        "lastName": last_name,
     }
 
     # At least one of email or phone is required
@@ -71,7 +89,7 @@ def map_customer_to_freescout(hs_customer: Dict) -> Dict:
         fs_customer['background'] = hs_customer['background']
 
     # Store additional emails as notes or in a custom field if needed
-    if len(emails) > 1:
+    if emails and len(emails) > 1:
         additional_emails = [e if isinstance(e, str) else e.get('value') for e in emails[1:]]
         if fs_customer.get('background'):
             fs_customer['background'] += f"\n\nAdditional emails: {', '.join(additional_emails)}"
