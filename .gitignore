@@ -99,3 +99,4 @@ test_import_results.json
 # OS
 .DS_Store
 Thumbs.db
+helpscout_export*.zip
