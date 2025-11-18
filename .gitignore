@@ -65,6 +65,27 @@ output/*.csv
 *.csv
 *.json
 
+# Generated report and debug files (root level)
+*_check.txt
+*_log.txt
+*_report.json
+*_report.txt
+*_results.json
+*_list.txt
+*_to_delete.json
+all_duplicates*
+bad_emails*
+customer_email_fix_results.json
+duplicate_conversations*
+email_fix_results.json
+export_verification_report.json
+freescout_customers.json
+import_progress.json
+migration_progress.json
+missing_conversations.json
+non_migrated*
+test_import_results.json
+
 # IDEs
 .vscode/
 .idea/
