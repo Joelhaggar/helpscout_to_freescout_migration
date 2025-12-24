@@ -215,6 +215,8 @@ def map_conversation_to_freescout(
         "status": map_status(hs_conversation.get('status', 'active')),
         "customer": fs_customer_data,
         "createdAt": hs_conversation.get('createdAt'),
+        "cc": hs_conversation.get('cc'),
+        "bcc": hs_conversation.get('bcc'),
         "threads": []
     }
 
@@ -284,6 +286,13 @@ def map_thread_to_freescout(
                 "data": encoded_data  # Base64-encoded for JSON transport
             })
         fs_thread['attachments'] = fs_attachments
+
+
+    fs_thread['cc'] = hs_thread.get('cc')
+    fs_thread['bcc'] = hs_thread.get('bcc')
+
+    # To isn't implemented in the FreeScout API at the time of writing, but leave for completedness
+    fs_thread['to'] = hs_thread.get('to')
 
     # Set created by based on thread type
     if thread_type == 'customer':
